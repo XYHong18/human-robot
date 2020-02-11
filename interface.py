@@ -29,6 +29,13 @@ from pylibfreenect2 import OpenGLPacketPipeline
 from threading import Thread
 
 
+
+class register:
+    def __init__(self):
+        self.registration = None
+        self.undistorted = None
+
+
 def open_device():
     # Create a processing pipeline.
     pipeline = OpenGLPacketPipeline()
@@ -63,22 +70,25 @@ class KinectView(App):
 
     def build(self):
         
-        self.img1=Image()
-        self.img1.bind(on_touch_down = self.imageOnPressed)
+        self.img1=Image(on_touch_down = self.on_press_image)
         self.root = layout = FloatLayout()
         layout.bind(size=self._update_rect, pos=self._update_rect)
         layout.add_widget(self.img1)
-        Clock.schedule_interval(self.update_img1, 1/30)
+        Clock.schedule_interval(self.update_img1, 1/50)
 
         self.cameraButton = Button(text="Close RGB-D Camera", font_size=14, size_hint=(None, None), size=(180, 100), pos=(810, 200))
         self.cameraButton.bind(on_press=lambda x:self.on_press_cameraButton())
         layout.add_widget(self.cameraButton)
 
-        self.pauseButton = Button(text="Pause", font_size=14, size_hint=(None, None), size=(180, 100), pos=(1400, 650))
+        self.pauseButton = Button(text="Pause", font_size=14, size_hint=(None, None), size=(180, 100), pos=(1400, 700))
         self.pauseButton.bind(on_press=lambda x:self.on_press_pauseButton())
         layout.add_widget(self.pauseButton)
 
-        self.gripperButton = Button(text="Open Gripper", font_size=14, size_hint=(None, None), size=(180, 100), pos=(1400, 420))
+        self.homeButton = Button(text="Home Position", font_size=14, size_hint=(None, None), size=(180, 100), pos=(1400, 525))
+        self.homeButton.bind(on_press=lambda x:self.on_press_homeButton())
+        layout.add_widget(self.homeButton)
+
+        self.gripperButton = Button(text="Open Gripper", font_size=14, size_hint=(None, None), size=(180, 100), pos=(1400, 350))
         self.gripperButton.bind(on_press=lambda x:self.on_press_gripperButton())
         layout.add_widget(self.gripperButton)
 
@@ -108,7 +118,6 @@ class KinectView(App):
         layout.add_widget(self.forwardButton)
 
 
-
         with layout.canvas.before:
             Color(1, 1, 1, 1)
             self.rect = Rectangle(size=layout.size, pos=layout.pos)
@@ -121,14 +130,27 @@ class KinectView(App):
         self.rect.size = instance.size
 
 
-    def imageOnPressed(self, instance, touch):
-        print("The touch is at position: ", self.img1.to_widget(*touch.pos))
-        print("Position of Image: ", str(self.img1.to_window(*self.img1.pos)))
+    def on_press_image(self, instance, touch):
+        mouseX, mouseY = self.img1.to_widget(*touch.pos)
+        print("Mouse Click: ", mouseX, mouseY)
 
+        if IMAGE_X < mouseX < IMAGE_X+512 and IMAGE_Y < mouseY < IMAGE_Y+424:
+            Thread(target=self.teleoperation_thread, args=[mouseX, mouseY]).start()
+        else:
+            print("Mouse click out of range")
 
-    def print_pos(self):
-        print("Position: " + str(self.img1.pos))
-        print("Position: " + str(self.cameraButton.pos))
+    def teleoperation_thread(self, mouseX, mouseY):
+        pixel_x, pixel_y = mouseX-IMAGE_X, 424-(mouseY-IMAGE_Y)
+        print("$$$$$$$$$", pixel_x, pixel_y)
+        X, Y, Z = register.registration.getPointXYZ(register.undistorted, pixel_y, pixel_x)
+        camera_coordinates = np.array([X, -Y, Z])
+        print("***********", camera_coordinates)
+        robot_coordinates = np.dot(R, camera_coordinates.T).T+t
+        r_x, r_y, r_z = robot_coordinates[0], robot_coordinates[1], robot_coordinates[2]+0.19
+
+        rob.movel((r_x, r_y, r_z, 3, -1, 0), a, v) 
+        
+        time.sleep(0.2)
 
 
     def on_stop(self):
@@ -146,7 +168,7 @@ class KinectView(App):
 
         if self.cameraButton.text == "Open RGB-D Camera":
             self.cameraButton.text = "Close RGB-D Camera"
-            Clock.schedule_interval(self.update_img1, 1/30)
+            Clock.schedule_interval(self.update_img1, 1/50)
         elif self.cameraButton.text == "Close RGB-D Camera":
             self.cameraButton.text = "Open RGB-D Camera"
             Clock.unschedule(self.update_img1)
@@ -157,6 +179,14 @@ class KinectView(App):
 
     def pause_thread(self):
         robot.stopl()
+
+    def on_press_homeButton(self):
+        Thread(target=self.home_thread).start()
+
+    def home_thread(self):
+        rob.movel((0.5, 0.4, 0.3, 3, -1, 0), a, v) 
+        time.sleep(0.2)
+
 
     def on_press_gripperButton(self):
         Thread(target=self.gripper_thread).start()
@@ -207,12 +237,12 @@ class KinectView(App):
             r_x, r_y, r_z = rob_pos[0], rob_pos[1], rob_pos[2]
 
         if direction == "left":
-            camera_pos = np.array([cam_x+MOVE_UNIT, cam_y, cam_z])
+            camera_pos = np.array([cam_x-MOVE_UNIT, cam_y, cam_z])
             rob_pos = np.dot(R, camera_pos.T).T + t
             r_x, r_y, r_z = rob_pos[0], rob_pos[1], rob_pos[2]
 
         if direction == "right":
-            camera_pos = np.array([cam_x-MOVE_UNIT, cam_y, cam_z])
+            camera_pos = np.array([cam_x+MOVE_UNIT, cam_y, cam_z])
             rob_pos = np.dot(R, camera_pos.T).T + t
             r_x, r_y, r_z = rob_pos[0], rob_pos[1], rob_pos[2]
 
@@ -237,7 +267,7 @@ class KinectView(App):
         ir = frames["ir"]
         depth = frames["depth"]
 
-        registration.apply(color, depth, undistorted, registered,
+        register.registration.apply(color, depth, register.undistorted, registered,
                        bigdepth=None,
                        color_depth_map=None)
 
@@ -247,15 +277,14 @@ class KinectView(App):
         #convert it to texture
         texture1 = Texture.create(size=(colors.shape[1], colors.shape[0]), colorfmt='rgb')
         texture1.flip_vertical()
-        texture1.flip_horizontal()
-
         #texture1.flip_horizontal()
+
         texture1.blit_buffer(colors.tostring(), colorfmt='rgb', bufferfmt='ubyte')
         # display image from the texture
         #self.img1.texture = texture1
 
         with self.img1.canvas:
-            Rectangle(pos=(644,426), size=(512, 424), texture=texture1)
+            Rectangle(pos=(IMAGE_X,IMAGE_Y), size=(512, 424), texture=texture1)
 
         listener.release(frames)
         
@@ -281,12 +310,14 @@ time.sleep(0.2)
 
 device, listener, fn = open_device()
 device.start()
-registration = Registration(device.getIrCameraParams(), device.getColorCameraParams())
+register.registration = Registration(device.getIrCameraParams(),
+                            device.getColorCameraParams())
+
 
 ir_params = device.getIrCameraParams()
 color_params = device.getColorCameraParams()
 
-undistorted = Frame(512, 424, 4)
+register.undistorted = Frame(512, 424, 4)
 registered = Frame(512, 424, 4)
 
 R = np.array([[0.80513296, 0.07898627, -0.58781127],
@@ -300,6 +331,8 @@ inversed_R = np.array([[0.78760051, -0.61546286, 0.02984794],
 inversed_t = np.array([0.01993442, -0.25646342, 1.35431799])
 
 MOVE_UNIT = 0.01
+IMAGE_X = 644
+IMAGE_Y = 426
 
 KinectView().run()
 cv2.destroyAllWindows()
