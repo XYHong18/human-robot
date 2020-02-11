@@ -160,10 +160,10 @@ def video():
     sys.exit(0)
 
 
-rospy.init_node('calculate_coordinates', anonymous=True)
+
 v = 0.05
 a = 0.01
-rob = urx.Robot("192.168.1.102")
+rob = urx.Robot("192.168.1.104")
 
 device, listener, fn = open_device()
 device.start()

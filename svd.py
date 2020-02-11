@@ -82,6 +82,12 @@ for i in range(len(A)):
 print("Average difference: ", diff/len(A))
 
 
+inversed_R, inversed_t = rigid_transform_3D(B, A)
+
+print('Inversed Rotation: ', inversed_R)
+print('Inversed Translation: ', inversed_t)
+
+
 
 
 
