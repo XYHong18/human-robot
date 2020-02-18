@@ -4,7 +4,7 @@ import time
 from urx.robotiq_two_finger_gripper import Robotiq_Two_Finger_Gripper
 
 if __name__ == '__main__':
-	rob = urx.Robot("192.168.1.104")
+	rob = urx.Robot("192.168.1.105")
         time.sleep(0.2)
 	robotiqgrip = Robotiq_Two_Finger_Gripper(rob)
 

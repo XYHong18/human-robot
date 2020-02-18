@@ -80,7 +80,7 @@ class KinectView(App):
         self.cameraButton.bind(on_press=lambda x:self.on_press_cameraButton())
         layout.add_widget(self.cameraButton)
 
-        self.pauseButton = Button(text="Pause", font_size=14, size_hint=(None, None), size=(180, 100), pos=(1400, 700))
+        self.pauseButton = Button(text="Stop", font_size=14, size_hint=(None, None), size=(180, 100), pos=(1400, 700))
         self.pauseButton.bind(on_press=lambda x:self.on_press_pauseButton())
         layout.add_widget(self.pauseButton)
 
@@ -178,7 +178,7 @@ class KinectView(App):
         Thread(target=self.pause_thread).start()
 
     def pause_thread(self):
-        robot.stopl()
+        rob.stopl()
 
     def on_press_homeButton(self):
         Thread(target=self.home_thread).start()
@@ -221,15 +221,18 @@ class KinectView(App):
 
     def move_thread(self, direction):
         rob_pos = rob.getl()
+        
         rob_x, rob_y, rob_z = rob_pos[0], rob_pos[1], rob_pos[2]
         rob_pos = np.array([rob_x, rob_y, rob_z])
         camera_pos = np.dot(inversed_R, rob_pos.T).T + inversed_t
+     
         cam_x, cam_y, cam_z = camera_pos[0], camera_pos[1], camera_pos[2]
 
         if direction == "up":
             camera_pos = np.array([cam_x, cam_y+MOVE_UNIT, cam_z])
             rob_pos = np.dot(R, camera_pos.T).T + t
             r_x, r_y, r_z = rob_pos[0], rob_pos[1], rob_pos[2]
+            
             
         if direction == "down":
             camera_pos = np.array([cam_x, cam_y-MOVE_UNIT, cam_z])
@@ -252,7 +255,7 @@ class KinectView(App):
             r_x, r_y, r_z = rob_pos[0], rob_pos[1], rob_pos[2]
 
         if direction == "backward":
-            camera_pos = np.array([cam_x, cam_y+MOVE_UNIT, cam_z+MOVE_UNIT])
+            camera_pos = np.array([cam_x, cam_y, cam_z+MOVE_UNIT])
             rob_pos = np.dot(R, camera_pos.T).T + t
             r_x, r_y, r_z = rob_pos[0], rob_pos[1], rob_pos[2]
 
