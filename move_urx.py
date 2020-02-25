@@ -6,7 +6,7 @@ import sys
 if __name__ == '__main__':
         v = 0.05
         a = 0.01
-        rob = urx.Robot("192.168.1.104")
+        rob = urx.Robot("192.168.1.105")
         time.sleep(0.2)
         p1 = rob.getl()
         print ("Original pose is: ",  p1)

@@ -21,48 +21,7 @@ from urx.robotiq_two_finger_gripper import Robotiq_Two_Finger_Gripper
 
 from threading import Thread, Lock
 
-from pylibfreenect2 import Freenect2, SyncMultiFrameListener
-from pylibfreenect2 import FrameType, Registration, Frame
-from pylibfreenect2 import createConsoleLogger, setGlobalLogger
-from pylibfreenect2 import LoggerLevel
-from pylibfreenect2 import OpenGLPacketPipeline
-from threading import Thread
-
-
-
-class register:
-    def __init__(self):
-        self.registration = None
-        self.undistorted = None
-
-
-def open_device():
-    # Create a processing pipeline.
-    pipeline = OpenGLPacketPipeline()
-    print("Packet pipeline:", type(pipeline).__name__)
-
-    # Create a logger.
-    logger = createConsoleLogger(LoggerLevel.Debug)
-    setGlobalLogger(logger)
-
-    # Discover Kinect device.
-    fn = Freenect2()
-    num_devices = fn.enumerateDevices()
-    if num_devices == 0:
-        print("No device connected!")
-        sys.exit(1)
-
-    serial = fn.getDeviceSerialNumber(0)
-
-    # Connect to the device.
-    device = fn.openDevice(serial, pipeline=pipeline)
-
-    # Register listeners.
-    listener = SyncMultiFrameListener(FrameType.Color | FrameType.Ir | FrameType.Depth)
-    device.setColorFrameListener(listener)
-    device.setIrAndDepthFrameListener(listener)
-
-    return device, listener, fn
+import pyrealsense2 as rs
 
 
 
@@ -93,29 +52,58 @@ class KinectView(App):
         layout.add_widget(self.gripperButton)
 
 
-        self.upButton = Button(background_normal="up.png", size_hint=(None, None), pos=(167, 690), border=(0, 0, 0, 0))
+        self.upButton = Button(background_normal="up.png", size_hint=(None, None), pos=(167, 730), border=(0, 0, 0, 0))
         self.upButton.bind(on_press=lambda x:self.on_press_upButton())
         layout.add_widget(self.upButton)
 
-        self.downButton = Button(background_normal="down.png", size_hint=(None, None), pos=(300, 690), border=(0, 0, 0, 0))
+        self.downButton = Button(background_normal="down.png", size_hint=(None, None), pos=(300, 730), border=(0, 0, 0, 0))
         self.downButton.bind(on_press=lambda x:self.on_press_downButton())
         layout.add_widget(self.downButton)
 
-        self.leftButton = Button(background_normal="left.png", size_hint=(None, None), size=(110, 70), pos=(150, 495), border=(0, 0, 0, 0))
+        self.leftButton = Button(background_normal="left.png", size_hint=(None, None), size=(110, 70), pos=(150, 585), border=(0, 0, 0, 0))
         self.leftButton.bind(on_press=lambda x:self.on_press_leftButton())
         layout.add_widget(self.leftButton)
 
-        self.rightButton = Button(background_normal="right.png", size_hint=(None, None), size=(110, 70), pos=(310, 495), border=(0, 0, 0, 0))
+        self.rightButton = Button(background_normal="right.png", size_hint=(None, None), size=(110, 70), pos=(310, 585), border=(0, 0, 0, 0))
         self.rightButton.bind(on_press=lambda x:self.on_press_rightButton())
         layout.add_widget(self.rightButton)
 
-        self.backwardButton = Button(background_normal="backward.png", size_hint=(None, None), size=(100, 50), pos=(235, 550), border=(0, 0, 0, 0))
+        self.backwardButton = Button(background_normal="backward.png", size_hint=(None, None), size=(100, 50), pos=(235, 640), border=(0, 0, 0, 0))
         self.backwardButton.bind(on_press=lambda x:self.on_press_backwardButton())
         layout.add_widget(self.backwardButton)
 
-        self.forwardButton = Button(background_normal="forward.png", size_hint=(None, None), size=(135, 91), pos=(216, 428), border=(0, 0, 0, 0))
+        self.forwardButton = Button(background_normal="forward.png", size_hint=(None, None), size=(135, 91), pos=(216, 518), border=(0, 0, 0, 0))
         self.forwardButton.bind(on_press=lambda x:self.on_press_forwardButton())
         layout.add_widget(self.forwardButton)
+
+
+        self.rzPlusButton = Button(background_normal="rz+.png", size_hint=(None, None), pos=(140, 300), size=(160, 120), border=(0, 0, 0, 0))
+        self.rzPlusButton.bind(on_press=lambda x:self.on_press_rzPlusButton())
+        layout.add_widget(self.rzPlusButton)
+ 
+        self.rzMinusButton = Button(background_normal="rz-.png", size_hint=(None, None), pos=(290, 305), size=(160, 120), border=(0, 0, 0, 0))
+        self.rzMinusButton.bind(on_press=lambda x:self.on_press_rzMinusButton())
+        layout.add_widget(self.rzMinusButton)
+
+
+        self.rxPlusButton = Button(background_normal="rx+.png", size_hint=(None, None), pos=(193, 182), size=(85, 85), border=(0, 0, 0, 0))
+        self.rxPlusButton.bind(on_press=lambda x:self.on_press_rxPlusButton())
+        layout.add_widget(self.rxPlusButton)
+
+
+        self.rxMinusButton = Button(background_normal="rx-.png", size_hint=(None, None), pos=(313, 182), size=(90, 90), border=(0, 0, 0, 0))
+        self.rxMinusButton.bind(on_press=lambda x:self.on_press_rxMinusButton())
+        layout.add_widget(self.rxMinusButton)
+
+
+        self.ryMinusButton = Button(background_normal="ry-.png", size_hint=(None, None), pos=(250, 245), size=(90, 90), border=(0, 0, 0, 0))
+        self.ryMinusButton.bind(on_press=lambda x:self.on_press_ryMinusButton())
+        layout.add_widget(self.ryMinusButton)
+
+
+        self.ryPlusButton = Button(background_normal="ry+.png", size_hint=(None, None), pos=(252, 115), size=(90, 90), border=(0, 0, 0, 0))
+        self.ryPlusButton.bind(on_press=lambda x:self.on_press_ryPlusButton())
+        layout.add_widget(self.ryPlusButton)
 
 
         with layout.canvas.before:
@@ -155,8 +143,6 @@ class KinectView(App):
 
     def on_stop(self):
         #without this, app will not exit even if the window is closed
-        device.stop()
-        device.close()
         rob.close()
 	sys.exit()
 
@@ -202,22 +188,53 @@ class KinectView(App):
             robotiqgrip.close_gripper()
 
     def on_press_upButton(self):
+        self.upButton.disabled=True
         Thread(target=self.move_thread, args=["up"]).start()
 
     def on_press_downButton(self):
+        self.downButton.disabled=True
         Thread(target=self.move_thread, args=["down"]).start()
 
     def on_press_leftButton(self):
+        self.leftButton.disabled=True
         Thread(target=self.move_thread, args=["left"]).start()
 
     def on_press_rightButton(self):
+        self.rightButton.disabled=True
         Thread(target=self.move_thread, args=["right"]).start()
 
     def on_press_backwardButton(self):
+        self.backwardButton.disabled=True
         Thread(target=self.move_thread, args=["backward"]).start()
 
     def on_press_forwardButton(self):
+        self.forwardButton.disabled=True
         Thread(target=self.move_thread, args=["forward"]).start()
+
+    def on_press_rzPlusButton(self):
+        self.rzPlusButton.disabled=True
+        Thread(target=self.rotate_thread, args=["rz+"]).start()
+
+    def on_press_rzMinusButton(self):
+        self.rzMinusButton.disabled=True
+        Thread(target=self.rotate_thread, args=["rz-"]).start() 
+
+    def on_press_rxPlusButton(self):
+        self.rxPlusButton.disabled=True
+        Thread(target=self.rotate_thread, args=["rx+"]).start() 
+
+    def on_press_rxMinusButton(self):
+        self.rxMinusButton.disabled=True
+        Thread(target=self.rotate_thread, args=["rx-"]).start() 
+
+    def on_press_ryPlusButton(self):
+        self.ryPlusButton.disabled=True
+        Thread(target=self.rotate_thread, args=["ry+"]).start() 
+
+    def on_press_ryMinusButton(self):
+        self.ryMinusButton.disabled=True
+        Thread(target=self.rotate_thread, args=["ry-"]).start() 
+
 
     def move_thread(self, direction):
         rob_pos = rob.getl()
@@ -258,24 +275,59 @@ class KinectView(App):
             camera_pos = np.array([cam_x, cam_y, cam_z+MOVE_UNIT])
             rob_pos = np.dot(R, camera_pos.T).T + t
             r_x, r_y, r_z = rob_pos[0], rob_pos[1], rob_pos[2]
+            
 
-        rob.movel((r_x, r_y, r_z, 3, -1, 0), a, v) 
+        rob.movel((r_x, r_y, r_z, 3, -1, 0), a, v)
+ 
+        self.upButton.disabled=False
+        self.downButton.disabled=False
+        self.leftButton.disabled=False
+        self.rightButton.disabled=False
+        self.backwardButton.disabled=False
+        self.forwardButton.disabled=False
+
+
+    def rotate_thread(self, direction):
+        rob_o = rob.get_orientation()
+        rob_pos = rob.getl()
+        rob_rx, rob_ry, rob_rz = rob_pos[3], rob_pos[4], rob_pos[5]
+
+        if direction == "rz+":
+            rob_o.rotate_zb(rob_rz+ROTATE_UNIT)
+            rob.set_orientation(rob_o)
+
+        elif direction == "rz-":
+            rob_o.rotate_zb(rob_rz-ROTATE_UNIT)
+            rob.set_orientation(rob_o)
+
+        else:
+            print("TBD")
+
+        self.rzPlusButton.disabled=False
+        self.rzMinusButton.disabled=False
+        self.rxPlusButton.disabled=False    
+        self.rxMinusButton.disabled=False
+        self.ryPlusButton.disabled=False
+        self.ryMinusButton.disabled=False
 
     
     def update_img1(self, dt):
 
-        frames = listener.waitForNewFrame()
+        # Get frameset of color and depth
+        frames = pipeline.wait_for_frames()
+        # frames.get_depth_frame() is a 640x360 depth image
 
-        color = frames["color"]
-        ir = frames["ir"]
-        depth = frames["depth"]
+        # Align the depth frame to color frame
+        aligned_frames = align.process(frames)
 
-        register.registration.apply(color, depth, register.undistorted, registered,
-                       bigdepth=None,
-                       color_depth_map=None)
+        # Get aligned frames
+        aligned_depth_frame = aligned_frames.get_depth_frame() # aligned_depth_frame is a 640x480 depth image
+        color_frame = aligned_frames.get_color_frame()
 
-        colors = registered.asarray(np.uint8)
-        colors = cv2.cvtColor(colors, cv2.COLOR_BGRA2RGB)
+        depth_image = np.asanyarray(aligned_depth_frame.get_data())
+        color_image = np.asanyarray(color_frame.get_data())
+
+        colors = cv2.cvtColor(color_image, cv2.COLOR_BGRA2RGB)
    
         #convert it to texture
         texture1 = Texture.create(size=(colors.shape[1], colors.shape[0]), colorfmt='rgb')
@@ -289,7 +341,6 @@ class KinectView(App):
         with self.img1.canvas:
             Rectangle(pos=(IMAGE_X,IMAGE_Y), size=(512, 424), texture=texture1)
 
-        listener.release(frames)
         
          
 import os
@@ -305,23 +356,35 @@ Config.set('graphics', 'resizable', '0')
 Config.set('graphics', 'width', '1800') 
 Config.set('graphics', 'height', '900') 
 
-v = 0.05
-a = 0.01
-rob = urx.Robot("192.168.1.104")
+v = 0.5
+a = 0.1
+rob = urx.Robot("192.168.1.105")
 
 time.sleep(0.2)
 
-device, listener, fn = open_device()
-device.start()
-register.registration = Registration(device.getIrCameraParams(),
-                            device.getColorCameraParams())
+# Create a pipeline
+pipeline = rs.pipeline()
 
+#Create a config and configure the pipeline to stream
+#  different resolutions of color and depth streams
+config = rs.config()
+config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
+config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
 
-ir_params = device.getIrCameraParams()
-color_params = device.getColorCameraParams()
+# Start streaming
+profile = pipeline.start(config)
 
-register.undistorted = Frame(512, 424, 4)
-registered = Frame(512, 424, 4)
+# Getting the depth sensor's depth scale (see rs-align example for explanation)
+depth_sensor = profile.get_device().first_depth_sensor()
+depth_scale = depth_sensor.get_depth_scale()
+print("Depth Scale is: " , depth_scale)
+
+# Create an align object
+# rs.align allows us to perform alignment of depth frames to others frames
+# The "align_to" is the stream type to which we plan to align depth frames.
+align_to = rs.stream.color
+align = rs.align(align_to)
+
 
 R = np.array([[0.80513296, 0.07898627, -0.58781127],
               [-0.59180229, 0.17237556, -0.7874368 ],
@@ -334,6 +397,7 @@ inversed_R = np.array([[0.78760051, -0.61546286, 0.02984794],
 inversed_t = np.array([0.01993442, -0.25646342, 1.35431799])
 
 MOVE_UNIT = 0.01
+ROTATE_UNIT = 0.08
 IMAGE_X = 644
 IMAGE_Y = 426
 
