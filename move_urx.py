@@ -10,7 +10,7 @@ if __name__ == '__main__':
         time.sleep(0.2)
         p1 = rob.getl()
         print ("Original pose is: ",  p1)
-        rob.movel((0.4, 0.4, 0.3, 3, -1, 0), a, v)
+        rob.movel((0.25, 0.5, 0.3, 3, -1, 0), a, v)
         p2 = rob.getl()
         print ("Current tool pose is: ",  p2)
         sys.exit(0)

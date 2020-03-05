@@ -55,14 +55,14 @@ try:
         color_frame = aligned_frames.get_color_frame()
 
         # Validate that both frames are valid
-        if not aligned_depth_frame or not color_frame:
+        if not aligned_depthqq_frame or not color_frame:
             continue
 
         depth_image = np.asanyarray(aligned_depth_frame.get_data())
         color_image = np.asanyarray(color_frame.get_data())
 
-        lower = np.array([-10, -10, 15], np.uint8)
-        upper = np.array([115, 56, 145], np.uint8)
+        lower = np.array([5, 100, 255], np.uint8)
+        upper = np.array([15, 200, 255], np.uint8)
          	
         frameHSV = cv2.cvtColor(color_image, cv2.COLOR_BGR2HSV)
         mask = cv2.inRange(frameHSV, lower, upper)
