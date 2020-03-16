@@ -7,14 +7,6 @@ import sys
 import time
 import pyrealsense2 as rs
 
-
-def depthToPointCloudPos(x_d, y_d, z, scale=1000):
-    x = (x_d - irCameraParams['cx']) * z / irCameraParams['fx']
-    y = (y_d - irCameraParams['cy']) * z / irCameraParams['fy']
-
-    return x / scale, y / scale, z / scale
-
-
         
 def draw_circle(event, x, y, flags, param):
     global mouseX, mouseY
@@ -24,7 +16,7 @@ def draw_circle(event, x, y, flags, param):
         depth_value = depth_image[mouseY][mouseX]*depth_scale
         print("Depth at the mouse click: ", depth_value)
         depth_point = rs.rs2_deproject_pixel_to_point(aligned_depth_intrinsics, [mouseX, mouseY], depth_value)
-        print("3D depth point: ", depth_point)
+        print("3D depth point: ", depth_point, type(depth_point))
         
 
  

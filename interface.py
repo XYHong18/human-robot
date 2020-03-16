@@ -122,19 +122,19 @@ class KinectView(App):
         mouseX, mouseY = self.img1.to_widget(*touch.pos)
         print("Mouse Click: ", mouseX, mouseY)
 
-        if IMAGE_X < mouseX < IMAGE_X+512 and IMAGE_Y < mouseY < IMAGE_Y+424:
-            Thread(target=self.teleoperation_thread, args=[mouseX, mouseY]).start()
+        if IMAGE_X < mouseX < IMAGE_X+640 and IMAGE_Y < mouseY < IMAGE_Y+480:
+            Thread(target=self.waypoint_thread, args=[mouseX, mouseY]).start()
         else:
             print("Mouse click out of range")
 
-    def teleoperation_thread(self, mouseX, mouseY):
-        pixel_x, pixel_y = mouseX-IMAGE_X, 424-(mouseY-IMAGE_Y)
-        print("$$$$$$$$$", pixel_x, pixel_y)
-        X, Y, Z = register.registration.getPointXYZ(register.undistorted, pixel_y, pixel_x)
-        camera_coordinates = np.array([X, -Y, Z])
-        print("***********", camera_coordinates)
+    def waypoint_thread(self, mouseX, mouseY):
+        c, r = mouseX-IMAGE_X, 480-(mouseY-IMAGE_Y)
+        print("$$$$$$$$$", c, r)
+        depth_value = depth_image[r][c]*depth_scale
+        depth_point = rs.rs2_deproject_pixel_to_point(aligned_depth_intrinsics, [c, r], depth_value)
+        camera_coordinates = np.array(depth_point)
         robot_coordinates = np.dot(R, camera_coordinates.T).T+t
-        r_x, r_y, r_z = robot_coordinates[0], robot_coordinates[1], robot_coordinates[2]+0.19
+        r_x, r_y, r_z = robot_coordinates[0], robot_coordinates[1], robot_coordinates[2]
 
         rob.movel((r_x, r_y, r_z, 3, -1, 0), a, v) 
         
@@ -151,7 +151,6 @@ class KinectView(App):
 
 
     def camera_thread(self):
-
         if self.cameraButton.text == "Open RGB-D Camera":
             self.cameraButton.text = "Close RGB-D Camera"
             Clock.schedule_interval(self.update_img1, 1/50)
@@ -246,13 +245,13 @@ class KinectView(App):
         cam_x, cam_y, cam_z = camera_pos[0], camera_pos[1], camera_pos[2]
 
         if direction == "up":
-            camera_pos = np.array([cam_x, cam_y+MOVE_UNIT, cam_z])
+            camera_pos = np.array([cam_x, cam_y-MOVE_UNIT, cam_z])
             rob_pos = np.dot(R, camera_pos.T).T + t
             r_x, r_y, r_z = rob_pos[0], rob_pos[1], rob_pos[2]
             
             
         if direction == "down":
-            camera_pos = np.array([cam_x, cam_y-MOVE_UNIT, cam_z])
+            camera_pos = np.array([cam_x, cam_y+MOVE_UNIT, cam_z])
             rob_pos = np.dot(R, camera_pos.T).T + t
             r_x, r_y, r_z = rob_pos[0], rob_pos[1], rob_pos[2]
 
@@ -312,6 +311,7 @@ class KinectView(App):
 
     
     def update_img1(self, dt):
+        global aligned_depth_intrinsics, depth_image
 
         # Get frameset of color and depth
         frames = pipeline.wait_for_frames()
@@ -323,6 +323,8 @@ class KinectView(App):
         # Get aligned frames
         aligned_depth_frame = aligned_frames.get_depth_frame() # aligned_depth_frame is a 640x480 depth image
         color_frame = aligned_frames.get_color_frame()
+
+        aligned_depth_intrinsics = rs.video_stream_profile(aligned_depth_frame.profile).get_intrinsics()
 
         depth_image = np.asanyarray(aligned_depth_frame.get_data())
         color_image = np.asanyarray(color_frame.get_data())
@@ -339,7 +341,7 @@ class KinectView(App):
         #self.img1.texture = texture1
 
         with self.img1.canvas:
-            Rectangle(pos=(IMAGE_X,IMAGE_Y), size=(512, 424), texture=texture1)
+            Rectangle(pos=(IMAGE_X,IMAGE_Y), size=(640, 480), texture=texture1)
 
         
          
@@ -356,10 +358,10 @@ Config.set('graphics', 'resizable', '0')
 Config.set('graphics', 'width', '1800') 
 Config.set('graphics', 'height', '900') 
 
-v = 0.5
-a = 0.1
+v = 0.05
+a = 0.01
 rob = urx.Robot("192.168.1.105")
-
+rob.set_tcp((0, 0, 0.18, 0, 0, 0))
 time.sleep(0.2)
 
 # Create a pipeline
@@ -373,6 +375,8 @@ config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
 
 # Start streaming
 profile = pipeline.start(config)
+aligned_depth_intrinsics = None
+depth_image=None
 
 # Getting the depth sensor's depth scale (see rs-align example for explanation)
 depth_sensor = profile.get_device().first_depth_sensor()
@@ -386,20 +390,21 @@ align_to = rs.stream.color
 align = rs.align(align_to)
 
 
-R = np.array([[0.80513296, 0.07898627, -0.58781127],
-              [-0.59180229, 0.17237556, -0.7874368 ],
-              [0.0391276, 0.98185938, 0.1855295 ]])
-t = np.array([0.8220288, 1.1116115, -0.01318528])
+R = np.array([[0.4729613, -0.02498102, 0.88072899],
+       [-0.88017677, 0.03193417, 0.47357054],
+       [-0.03995563, -0.99917774, -0.00688409]])
+t = np.array([-0.43179749, 0.24159906, 0.15602798])
 
-inversed_R = np.array([[0.78760051, -0.61546286, 0.02984794],
-                       [0.10371184, 0.18015614, 0.97815521],
-                       [-0.6073955, -0.76729996, 0.20572185]])
-inversed_t = np.array([0.01993442, -0.25646342, 1.35431799])
+
+inversed_R = np.array([[0.4729613, -0.88017677, -0.03995563],
+       [-0.02498102, 0.03193417, -0.99917774],
+       [0.88072899, 0.47357054, -0.00688409]])
+inversed_t = np.array([0.42310757,  0.13739768,  0.26695648])
 
 MOVE_UNIT = 0.01
 ROTATE_UNIT = 0.08
 IMAGE_X = 644
-IMAGE_Y = 426
+IMAGE_Y = 350
 
 KinectView().run()
 cv2.destroyAllWindows()
