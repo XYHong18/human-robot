@@ -39,40 +39,40 @@ class KinectView(App):
         self.cameraButton.bind(on_press=lambda x:self.on_press_cameraButton())
         layout.add_widget(self.cameraButton)
 
-        self.pauseButton = Button(text="Stop", font_size=14, size_hint=(None, None), size=(180, 100), pos=(1400, 700))
+        self.pauseButton = Button(text="Stop", font_size=14, size_hint=(None, None), size=(180, 100), pos=(1100, 700))
         self.pauseButton.bind(on_press=lambda x:self.on_press_pauseButton())
         layout.add_widget(self.pauseButton)
 
-        self.homeButton = Button(text="Home Position", font_size=14, size_hint=(None, None), size=(180, 100), pos=(1400, 525))
+        self.homeButton = Button(text="Home Position", font_size=14, size_hint=(None, None), size=(180, 100), pos=(1100, 525))
         self.homeButton.bind(on_press=lambda x:self.on_press_homeButton())
         layout.add_widget(self.homeButton)
 
-        self.gripperButton = Button(text="Open Gripper", font_size=14, size_hint=(None, None), size=(180, 100), pos=(1400, 350))
+        self.gripperButton = Button(text="Open Gripper", font_size=14, size_hint=(None, None), size=(180, 100), pos=(1100, 350))
         self.gripperButton.bind(on_press=lambda x:self.on_press_gripperButton())
         layout.add_widget(self.gripperButton)
 
 
-        self.upButton = Button(background_normal="up.png", size_hint=(None, None), pos=(167, 730), border=(0, 0, 0, 0))
+        self.upButton = Button(background_normal="up.png", size_hint=(None, None), pos=(167, 530), border=(0, 0, 0, 0))
         self.upButton.bind(on_press=lambda x:self.on_press_upButton())
         layout.add_widget(self.upButton)
 
-        self.downButton = Button(background_normal="down.png", size_hint=(None, None), pos=(300, 730), border=(0, 0, 0, 0))
+        self.downButton = Button(background_normal="down.png", size_hint=(None, None), pos=(300, 530), border=(0, 0, 0, 0))
         self.downButton.bind(on_press=lambda x:self.on_press_downButton())
         layout.add_widget(self.downButton)
 
-        self.leftButton = Button(background_normal="left.png", size_hint=(None, None), size=(110, 70), pos=(150, 585), border=(0, 0, 0, 0))
+        self.leftButton = Button(background_normal="left.png", size_hint=(None, None), size=(110, 70), pos=(150, 385), border=(0, 0, 0, 0))
         self.leftButton.bind(on_press=lambda x:self.on_press_leftButton())
         layout.add_widget(self.leftButton)
 
-        self.rightButton = Button(background_normal="right.png", size_hint=(None, None), size=(110, 70), pos=(310, 585), border=(0, 0, 0, 0))
+        self.rightButton = Button(background_normal="right.png", size_hint=(None, None), size=(110, 70), pos=(310, 385), border=(0, 0, 0, 0))
         self.rightButton.bind(on_press=lambda x:self.on_press_rightButton())
         layout.add_widget(self.rightButton)
 
-        self.backwardButton = Button(background_normal="backward.png", size_hint=(None, None), size=(100, 50), pos=(235, 640), border=(0, 0, 0, 0))
+        self.backwardButton = Button(background_normal="backward.png", size_hint=(None, None), size=(100, 50), pos=(235, 340), border=(0, 0, 0, 0))
         self.backwardButton.bind(on_press=lambda x:self.on_press_backwardButton())
         layout.add_widget(self.backwardButton)
 
-        self.forwardButton = Button(background_normal="forward.png", size_hint=(None, None), size=(135, 91), pos=(216, 518), border=(0, 0, 0, 0))
+        self.forwardButton = Button(background_normal="forward.png", size_hint=(None, None), size=(135, 91), pos=(216, 318), border=(0, 0, 0, 0))
         self.forwardButton.bind(on_press=lambda x:self.on_press_forwardButton())
         layout.add_widget(self.forwardButton)
 
@@ -355,13 +355,13 @@ from kivy.config import Config
 Config.set('graphics', 'resizable', '0') 
   
 # fix the width of the window  
-Config.set('graphics', 'width', '1800') 
-Config.set('graphics', 'height', '900') 
+Config.set('graphics', 'width', '1500') 
+Config.set('graphics', 'height', '600') 
 
 v = 0.05
 a = 0.01
-rob = urx.Robot("192.168.1.105")
-rob.set_tcp((0, 0, 0.18, 0, 0, 0))
+#rob = urx.Robot("192.168.1.105")
+#rob.set_tcp((0, 0, 0.18, 0, 0, 0))
 time.sleep(0.2)
 
 # Create a pipeline
@@ -403,8 +403,8 @@ inversed_t = np.array([0.42310757,  0.13739768,  0.26695648])
 
 MOVE_UNIT = 0.01
 ROTATE_UNIT = 0.08
-IMAGE_X = 644
-IMAGE_Y = 350
+IMAGE_X = 444
+IMAGE_Y = 150
 
 KinectView().run()
 cv2.destroyAllWindows()
