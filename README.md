@@ -4,7 +4,7 @@ This project develops a human-robot system that consists of an RGB-D camera, a r
 
 ## Interface
 
-![](interface.png)
+![](interface.png | width=100)
 
 Run the interface:
 ```sh
