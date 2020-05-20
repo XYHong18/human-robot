@@ -78,6 +78,7 @@ for i in range(len(A)):
     print("observed: ", B[i])
     print("predicted: ", new_B)
     dist = np.sqrt(np.sum((B[i]-new_B)**2)) * 100
+    print("Difference: ", dist)
     diff += dist
 
 print("Average difference: ", diff/len(A))
