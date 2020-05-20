@@ -5,7 +5,7 @@ This project develops a human-robot system that consists of an RGB-D camera, a r
 
 ## UR5e Robotic Arm
 
-<img style="float" align="center" src="robotic_arm.jpg" title="robot" width="250">
+<img style="float" align="center" src="robotic_arm.jpg" title="robot" width="280">
 
 In the backend, the connection, movement and rotation of the robotic arm is controlled by ``urx``, a python library to control the robots from Universal Robots: https://github.com/SintefManufacturing/python-urx.
 
@@ -21,13 +21,13 @@ The connection, image data transmission between the RGB-D camera and the compute
 
 ## Interface
 
+<img style="float" align="center" src="interface.png" title="Interface" width="450">
+
 The interface uses multiple threads to communicate with both the RGB-D camera and robotic arm: one thread runs in the background, handling incoming data packets from the camera, while the other threads build the connection and send commands to the robotic arm.
 
 As shown below, the interface displays a camera view, which covers the workspace of the robotic arm. If a pixel is clicked, the end point of the gripper will move to the corresponding 3D location. Note: if the target location is out of the safe range of the robotic arm, the robotic arm will keep moving until the protection stop is triggered. In addition, two sets of arrow buttons on the left provide nudge control for users to move and rotate the robotic arm on a small scale. Moreover, three rectangular grey buttons on the right provides some extra functions: (1) stop the robotic arm from futher moving; (2) move the robotic arm to the home position; (3) open and close the gripper. 
 
 The interface is developed in ``Kivy``, a Python library for development of applications that make use of user interfaces. For more information about ``Kivy`` installation and APIs, please refer to: https://kivy.org/#home.
-
-<img style="float" align="center" src="interface.png" title="Interface" width="400">
 
 Run the interface:
 ```sh
