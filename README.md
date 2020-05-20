@@ -46,5 +46,7 @@ For the first step, we need to collect two groups of paired data: one group cont
 
 After collecting the data, we can get the transformation matrix by running `svd.py`. The input is two numpy arrays, and the output is a rotation vector and a translation vector.
 
+When the calibration is done, you can run `no_interface.py` to test the accuracy of the movement of the robotic arm by clicking on a pixel in an OpenCV window, without the need to run a Kivy interface.
+
 
 
